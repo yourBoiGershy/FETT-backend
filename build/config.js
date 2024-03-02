@@ -1,6 +1,5 @@
-let config 		= {};
-config.db 		= {};
-
+let config = {};
+config.db = {};
 
 // create properties on the config.db object for the host and database names
 const username = "ericgershtein"; // username for the MongoDB Atlas on cloud
