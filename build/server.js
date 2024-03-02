@@ -9,6 +9,7 @@ let db;
 app.locals.db = db;
 
 const applicationRouter = require("./applicationRouter.js");
+const projectsRouter = require("./projectsRouter.js");
 
 const PORT = process.env.PORT || 8000;
 
@@ -26,6 +27,7 @@ app.use((req,_,next)=> {
 });
 
 app.use("/api/application", applicationRouter);
+app.use("/api/projects", projectsRouter);
 
 // This gives you a 'client' object that you can use to interact with the database
 mc.connect(config.db.host, function(err, client) {
