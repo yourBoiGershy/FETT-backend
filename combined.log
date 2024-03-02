@@ -1,3 +1,0 @@
-2024-03-02T18:58:00.295Z [applicationRouter.js] info: UID: d240a2d2-7320-4e5d-9be7-9748cb154ede Application get request with no ID
-2024-03-02T18:58:00.296Z [applicationRouter.js] info: UID: d240a2d2-7320-4e5d-9be7-9748cb154ede Header: {"user-agent":"PostmanRuntime/7.29.2","accept":"*/*","postman-token":"c609615e-3da4-4b51-a028-bed7a2e2a3c6","host":"localhost:8000","accept-encoding":"gzip, deflate, br","connection":"keep-alive"}
-2024-03-02T18:58:01.727Z [applicationRouter.js] error: UID: d240a2d2-7320-4e5d-9be7-9748cb154ede  Error message: 404 Object Not Found

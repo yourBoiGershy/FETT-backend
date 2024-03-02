@@ -6,10 +6,6 @@ const config = require("./config.js"); // import the config module which contain
 let applicationRouter = express.Router();
 var ObjectId = require('mongodb').ObjectID;
 
-//import fetch from 'node-fetch';
-//import fetch from 'node-fetch';
-const fetch = require('node-fetch');
-
 const uuid = require('node-uuid');
 const winston = require("winston");
 const { createLogger, format, transports } = require('winston');
