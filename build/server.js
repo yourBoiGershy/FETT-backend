@@ -9,12 +9,6 @@ let db;
 app.locals.db = db;
 
 const applicationRouter = require("./applicationRouter.js");
-const applicantRouter = require("./applicantRouter.js");
-const referRouter = require("./referRouter.js");
-const imageRouter = require("./imageRouter.js");
-const clientsRouter = require("./clientsRouter.js");
-const propertiesRouter = require("./propertiesRouter.js");
-const emailsRouter = require("./emailsRouter.js");
 
 const PORT = process.env.PORT || 8000;
 
@@ -32,12 +26,6 @@ app.use((req,_,next)=> {
 });
 
 app.use("/api/application", applicationRouter);
-app.use("/api/applicant", applicantRouter);
-app.use("/api/refer", referRouter);
-app.use("/api/image", imageRouter);
-app.use("/api/clients", clientsRouter);
-app.use("/api/properties", propertiesRouter);
-app.use("/api/emails", emailsRouter);
 
 // This gives you a 'client' object that you can use to interact with the database
 mc.connect(config.db.host, function(err, client) {
