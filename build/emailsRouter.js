@@ -179,7 +179,6 @@ emailsRouter.put("/:id", async (req, res, err) => {
 		res.status(status).send()
 		return
 	});
-
 })
 
 emailsRouter.put("/:eId/inactive", async (req, res, err) => {
