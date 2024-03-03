@@ -1,23 +1,17 @@
 // import the required modules
-const express = require('express');
-const morgan = require('morgan');
-const helmet = require('helmet');
-const cors = require('cors');
-const { auth } = require('express-oauth2-jwt-bearer');
+const express = require("express");
 const app = express();
+const cors = require('cors');
 const mc = require("mongodb").MongoClient;
-const authConfig = require("./authConfig.js"); // import the config module which contains the database login and name information
-
 const config = require("./config.js"); // import the config module which contains the database login and name information
 
 let db;
 app.locals.db = db;
 
-const projectsRouter = require("./projectsRouter.js");
+
 const authRouter = require("./authRouter.js");
 const usersRouter = require("./usersRouter.js");
-
-
+const projectsRouter = require("./projectsRouter.js");
 
 const PORT = process.env.PORT || 8000;
 
@@ -48,8 +42,6 @@ app.use("/api/auth", authRouter);
 mc.connect(config.db.host, function(err, client) {
   if(err) throw err;
 	console.log(`We have successfully connected to the ${config.db.name} database.`);
-
-
 
     // Only start listening now, when we know the database is available.
   	app.listen(8000);
