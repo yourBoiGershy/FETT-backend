@@ -1,4 +1,4 @@
-// import the required modules
+`// import the required modules
 const express = require('express');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -19,7 +19,7 @@ const usersRouter = require("./usersRouter.js");
 const groupsRouter = require('./groupsRouter.js');
 const projectsRouter = require('./projectsRouter.js');
 
-
+const usersRouter = require("./usersRouter.js");
 
 const PORT = process.env.PORT || 8000;
 
@@ -43,6 +43,9 @@ const checkJwt = auth({
 
 app.use("/api/users", usersRouter);
 app.use("/api/projects", projectsRouter);
+
+app.use("/api/users", usersRouter);
+
 app.use("/api/auth", authRouter);
 app.use("/api/groups", groupsRouter);
 
