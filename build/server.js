@@ -13,11 +13,10 @@ const config = require("./config.js"); // import the config module which contain
 let db;
 app.locals.db = db;
 
-const applicationRouter = require("./applicationRouter.js");
-
 const projectsRouter = require("./projectsRouter.js");
-
 const authRouter = require("./authRouter.js");
+const usersRouter = require("./usersRouter.js");
+
 
 
 const PORT = process.env.PORT || 8000;
@@ -40,11 +39,8 @@ const checkJwt = auth({
   issuerBaseURL: `https://${authConfig.domain}`,
 });
 
-//app.use(checkJwt);
-app.use("/api/application", applicationRouter);
-
+app.use("/api/users", usersRouter);
 app.use("/api/projects", projectsRouter);
-
 app.use("/api/auth", authRouter);
 
 
