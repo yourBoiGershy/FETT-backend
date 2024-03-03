@@ -11,5 +11,15 @@ const connectionURL = `mongodb+srv://${username}:${password}@cluster0.cwpom.mong
 // create properties on the config.db object for the host and database names
 config.db.host = connectionURL;
 config.db.name = dbname;
+config.smtp = {
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: 'egershte@gmail.com',
+        pass: 'dsvcyevaaafleeqc'
+    }
+}
+
 
 module.exports = config;

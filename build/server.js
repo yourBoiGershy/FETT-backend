@@ -1,4 +1,4 @@
-`// import the required modules
+// import the required modules
 const express = require('express');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -18,8 +18,9 @@ const authRouter = require("./authRouter.js");
 const usersRouter = require("./usersRouter.js");
 const groupsRouter = require('./groupsRouter.js');
 const projectsRouter = require('./projectsRouter.js');
+const emailsRouter = require('./emailsRouter.js')
 
-const usersRouter = require("./usersRouter.js");
+
 
 const PORT = process.env.PORT || 8000;
 
@@ -43,11 +44,10 @@ const checkJwt = auth({
 
 app.use("/api/users", usersRouter);
 app.use("/api/projects", projectsRouter);
-
-app.use("/api/users", usersRouter);
-
 app.use("/api/auth", authRouter);
 app.use("/api/groups", groupsRouter);
+app.use("/api/emails", emailsRouter);
+
 
 
 // This gives you a 'client' object that you can use to interact with the database
