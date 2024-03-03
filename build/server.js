@@ -1,9 +1,14 @@
 // import the required modules
-const express = require("express");
-const app = express();
+const express = require('express');
+const morgan = require('morgan');
+const helmet = require('helmet');
 const cors = require('cors');
+const { auth } = require('express-oauth2-jwt-bearer');
+const app = express();
+
 const mc = require("mongodb").MongoClient;
 const config = require("./config.js"); // import the config module which contains the database login and name information
+const authConfig = require("./authConfig.js"); // import the config module which contains the database login and name information
 
 let db;
 app.locals.db = db;
@@ -11,7 +16,10 @@ app.locals.db = db;
 
 const authRouter = require("./authRouter.js");
 const usersRouter = require("./usersRouter.js");
-const projectsRouter = require("./projectsRouter.js");
+const groupsRouter = require('./groupsRouter.js');
+const projectsRouter = require('./projectsRouter.js');
+
+
 
 const PORT = process.env.PORT || 8000;
 
@@ -36,6 +44,7 @@ const checkJwt = auth({
 app.use("/api/users", usersRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/groups", groupsRouter);
 
 
 // This gives you a 'client' object that you can use to interact with the database
