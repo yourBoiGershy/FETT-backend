@@ -11,6 +11,7 @@ let usersRouter = express.Router();
 var ObjectId = require('mongodb').ObjectID;
 
 const uuid = require('node-uuid');
+const e = require('express');
 
 usersRouter.get('', (req, res) => {
     mc.connect(config.db.host, async (err, client) => {
@@ -64,7 +65,7 @@ usersRouter.get('/email/:email', (req, res) => {
 });
 
 
-usersRouter.post('', (req, res) => {
+usersRouter.put('', (req, res) => {
     mc.connect(config.db.host, async (err, client) => {
         if (err) {
             console.error('Database connection failed', err);
@@ -72,34 +73,42 @@ usersRouter.post('', (req, res) => {
             return;
         }
 
+        //if exists 
+
         const db = client.db(config.db.name);
         const users = db.collection("Users");
-        
-        //console.log(req.headers)
-        let newUser = {
-            email: req.headers.email ? req.headers.email : 'default@example.com',
-        };
+        let email = req.body.email;
 
-        try {
-          
-            const result = await users.insertOne(newUser);
-            if (result.acknowledged === true && result.insertedId) {
-                
-                newUser._id = result.insertedId; 
-                res.status(201).json(newUser);
-            } else {
-                throw new Error('User creation failed');
+        users.findOne({ email: email }, async (err, result) => {
+            //if they didn't find it
+            let user = {
+                email: req.body.email,
+                fname: req.body.fname,
+                lname: req.body.lname,
             }
-        } catch (error) {
-            console.error('Error creating new user', error);
-            res.status(500).send('Error creating new user');
-        } finally {
-      
-            client.close();
-        }
+
+            if (result == null) {
+                users.insertOne(user, (err, result) => {
+                    if (err) {
+                        console.error('Error creating new user', err);
+                        res.status(500).send('Error creating new user');
+                        return;
+                    }
+                    res.status(201).json(user);
+                });
+            } 
+            else {
+                users.updateOne({email: email}, {$set: {fname: req.body.fname, lname: req.body.lname}}, (err, result) => {
+                    if (err) {
+                        console.error('Error updating user', err);
+                        res.status(500).send('Error updating user');
+                        return;
+                    }
+                    res.status(200).json(user);
+                });
+            }           
+        });    
     });
 });
-
-
 
 module.exports = usersRouter;
