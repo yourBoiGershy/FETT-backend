@@ -58,68 +58,206 @@ DELETE:
 
 */
 
-//Get all projects for the logged in user
-projectsRouter.get("/getProjects", async (req, res, err) => {
-	let email = req.body.userEmail;
+projectsRouter.get("/getProjects", async (req, res) => {
+    let email = req.headers.email;
 
-	mc.connect(config.db.host, async (err, client) => {
-		db = client.db(config.db.name);
-		let projects = db.collection("Projects");
+    mc.connect(config.db.host, async (err, client) => {
+        if (err) {
+            console.error('Database connection failed', err);
+            res.status(500).send('Database connection failed');
+            return;
+        }
 
-		projects.find({owner: email}).toArray(function(err, result){
-			if(err) throw err;
-			res.status(200);
-			res.set("Content-Type", "application/json");
-			res.json(result);
-			return;
-		});
-	});
+        try {
+            const db = client.db(config.db.name);
+            const projects = db.collection("Projects");
+            const groups = db.collection("Groups");
+
+            let projectsResult = await projects.find({owner: email}).toArray();
+
+            // Enhance each project with the user's group
+            const projectsWithGroup = await Promise.all(projectsResult.map(async (project) => {
+                // Fetch the corresponding group based on projectId
+                const group = await groups.findOne({projectId: project._id.toString()});
+                
+                // Log the group if it exists
+                if (group) {
+                    console.log("Group found:", group);
+                    
+                    // Determine the user's role in the group
+                    let role = null;
+                    if (group.managers.includes(email)) {
+                        role = 'manager';
+                    } else if (group.employees.includes(email)) {
+                        role = 'employee';
+                    } else if (group.observers.includes(email)) {
+                        role = 'observer';
+                    }
+
+                    return { ...project, group: role }; // Attach the role to the project
+                } else {
+                    console.log("No group found for project ID:", project._id.toString());
+                    return { ...project, group: null }; // No group found
+                }
+            }));
+
+            res.status(200).json(projectsWithGroup);
+        } catch (error) {
+            console.error('Error fetching projects and groups', error);
+            res.status(500).send('Error fetching projects and groups');
+        } finally {
+            await client.close();
+        }
+    });
 });
 
-//Create project for the logged in user as owner
-projectsRouter.post("/createProject", async (req, res, err) => {
-	let projectData = {
-		name : req.body.name,
-		description : req.body.description,
-		status : req.body.status,
-		owner : req.body.owner,
-		contributers : req.body.contributers ? req.body.contributers : [],
-		tasks : []
-	}
-	
-	mc.connect(config.db.host, async(err, client) => {
+async function findUserGroupByEmailAndProjectId(email, projectId, client) {
+    const db = client.db(config.db.name);
+    const groups = db.collection("Groups");
+    console.log(email, projectId)
+    const query = {
+        projectId: projectId,
+        $or: [
+            { managers: email },
+            { employees: email },
+            { observers: email }
+        ]
+    };
 
-		db = client.db(config.db.name);
-		let projects = db.collection("Projects");
+    const group = await groups.findOne(query);
+	console.log(group)
+    if (group) {
+        if (group.managers.includes(email)) {
+            return 'manager';
+        } else if (group.employees.includes(email)) {
+            return 'employee';
+        } else if (group.observers.includes(email)) {
+            return 'observer';
+        }
+    }
+    return null; // No group found
+}
 
-		projects.insertOne(projectData, function(err, result){
-			if(err) throw err;
-			res.status(200);
-			res.set("Content-Type", "application/json");
-			res.json(result.insertedId);
-			return;
-		});
-	});
+
+projectsRouter.post("/createProject", async (req, res) => {
+    let projectData = {
+        name: req.body.name,
+        description: req.body.description,
+        status: req.body.status,
+        owner: req.body.owner,
+        assignees: req.body.assignees ? req.body.assignees : [],
+        tasks: []
+    };
+
+    mc.connect(config.db.host, async (err, client) => {
+        if (err) {
+            console.error('Database connection failed', err);
+            res.status(500).send('Database connection failed');
+            return;
+        }
+
+        try {
+            const db = client.db(config.db.name);
+            const projects = db.collection("Projects");
+            // Insert the new project
+            const projectResult = await projects.insertOne(projectData);
+
+            // Check if the project was successfully created
+            if (projectResult.insertedId) {
+                const groups = db.collection("Groups");
+				
+                // Initialize group data for the new project
+                let groupData = {
+                    projectId: projectResult.insertedId.toString(),
+                    managers: [projectData.owner],
+                    employees: [],
+                    observers: []
+                };
+				console.log(groupData)
+                // Create a new group for the project
+                const groupResult = await groups.insertOne(groupData);
+				console.log(groupResult.insertedId)
+                // Check if the group was successfully created
+                if (groupResult.insertedId) {
+                    res.status(200).json({
+                        projectId: projectResult.insertedId,
+                        groupId: groupResult.insertedId,
+                        message: "Project and corresponding group created successfully"
+                    });
+                } else {
+                    throw new Error('Group creation failed');
+                }
+            } else {
+                throw new Error('Project creation failed');
+            }
+        } catch (error) {
+            console.error('Error creating project or group', error);
+            res.status(500).send('Error creating project or group');
+        } finally {
+            client.close();
+        }
+    });
 });
 
-//Get project by ID
-projectsRouter.get("/:id", async (req, res, err) => {
-	let projectID = req.params.id;
 
-	mc.connect(config.db.host, async(err, client) => {
-		db = client.db(config.db.name);
-		let projects = db.collection("Projects");
+projectsRouter.get("/:id", async (req, res) => {
+    let projectID = req.params.id;
+	//console.log(req.headers)
+    let email = req.headers.email; // Assuming you're passing the user's email as a query parameter
 
-		//Get project by ID - each ID is unique
-		projects.findOne({_id: ObjectId(projectID)}, function(err, result){
-			if(err) throw err;
-			res.status(200);
-			res.set("Content-Type", "application/json");
-			res.json(result);
-			return;
-		});
-	});
+    mc.connect(config.db.host, async (err, client) => {
+        if (err) {
+            console.error('Database connection failed', err);
+            res.status(500).send('Database connection failed');
+            return;
+        }
+
+        try {
+            const db = client.db(config.db.name);
+            const projects = db.collection("Projects");
+            const groups = db.collection("Groups");
+
+            // Fetch the project by ID
+            const project = await projects.findOne({ _id: ObjectId(projectID) });
+
+            if (!project) {
+                res.status(404).send('Project not found');
+                return;
+            }
+			console.log(projectID, projectID.toString())
+            // Fetch the corresponding group based on projectId
+            const group = await groups.findOne({ projectId: projectID.toString() });
+			//console.log(group)
+            let role = null; // Initialize role as null
+
+            // If a group is found and an email is provided, determine the user's role
+            if (group && email) {
+                console.log("Group found for project:", group);
+
+                if (group.managers.includes(email)) {
+                    role = 'manager';
+                } else if (group.employees.includes(email)) {
+                    role = 'employee';
+                } else if (group.observers.includes(email)) {
+                    role = 'observer';
+                }
+            } else {
+                console.log("No group found for project ID:", projectID);
+            }
+
+            // Attach the role to the project information and return it
+            const projectWithRole = { ...project, group: role };
+
+            res.status(200).json(projectWithRole);
+        } catch (error) {
+            console.error('Error fetching project and determining group role', error);
+            res.status(500).send('Error fetching project and determining group role');
+        } finally {
+            await client.close();
+        }
+    });
 });
+
 
 //Update project
 projectsRouter.patch("/:id", async (req, res, err) => {
@@ -189,7 +327,7 @@ projectsRouter.patch("/:id/addTask", async (req, res, err) => {
 			name: String
 			description: String
 			status: String
-			contributers: [String]
+			assignnees: [String]
 			priority: String
 			subtasks: [taskData]
 		}
@@ -317,8 +455,8 @@ projectsRouter.patch("/:id/deleteTask", async (req, res, err) => {
 	});
 });
 
-//Get contributers for a project
-projectsRouter.get("/:id/getContributers", async (req, res, err) => {
+//Get assignees for a project
+projectsRouter.get("/:id/getAssignees", async (req, res, err) => {
 	let projectID = req.params.id;
 
 	mc.connect(config.db.host, async(err, client) => {
@@ -329,7 +467,7 @@ projectsRouter.get("/:id/getContributers", async (req, res, err) => {
 			if(err) throw err;
 			res.status(200);
 			res.set("Content-Type", "application/json");
-			res.json(result.contributers);
+			res.json(result.assignees);
 			return;
 		});
 	});
