@@ -72,7 +72,6 @@ usersRouter.put('', (req, res) => {
             res.status(500).send('Database connection failed');
             return;
         }
-
         //if exists 
 
         const db = client.db(config.db.name);
@@ -110,5 +109,35 @@ usersRouter.put('', (req, res) => {
         });    
     });
 });
+
+// module.exports = usersRouter;
+// =======
+//         const db = client.db(config.db.name);
+//         const users = db.collection("Users");
+        
+//         //console.log(req.headers)
+//         let newUser = {
+//             email: req.headers.email ? req.headers.email : 'default@example.com',
+//         };
+
+//         try {
+          
+//             const result = await users.insertOne(newUser);
+//             if (result.acknowledged === true && result.insertedId) {
+                
+//                 newUser._id = result.insertedId; 
+//                 res.status(201).json(newUser);
+//             } else {
+//                 throw new Error('User creation failed');
+//             }
+//         } catch (error) {
+//             console.error('Error creating new user', error);
+//             res.status(500).send('Error creating new user');
+//         } finally {
+      
+//             client.close();
+//         }
+//     });
+// });
 
 module.exports = usersRouter;
