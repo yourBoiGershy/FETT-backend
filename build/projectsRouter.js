@@ -62,12 +62,12 @@ DELETE:
 projectsRouter.get("/getProjects", async (req, res, err) => {
 	let userID = req.body.userID;
 
-	mc.connect(config.db.host, async(err, client) => {
+	mc.connect(config.db.host, async (err, client) => {
 		db = client.db(config.db.name);
 		let projects = db.collection("Projects");
 
-		projects.find({owner: userID}).toArray(function(err, result){
-			if(err) throw err;
+		projects.find({ owner: userID }).toArray(function (err, result) {
+			if (err) throw err;
 			res.status(200);
 			res.set("Content-Type", "application/json");
 			res.json(result);
@@ -126,12 +126,12 @@ projectsRouter.patch("/:id", async (req, res, err) => {
 	let projectID = req.params.id;
 	let projectData = req.body;
 
-	mc.connect(config.db.host, async(err, client) => {
+	mc.connect(config.db.host, async (err, client) => {
 		db = client.db(config.db.name);
 		let projects = db.collection("Projects");
 
-		projects.updateOne({_id: ObjectId(projectID)}, {$set: projectData}, function(err, result){
-			if(err) throw err;
+		projects.updateOne({ _id: ObjectId(projectID) }, { $set: projectData }, function (err, result) {
+			if (err) throw err;
 			res.status(200);
 			res.set("Content-Type", "application/json");
 			res.json(result);
@@ -145,12 +145,12 @@ projectsRouter.patch("/:id", async (req, res, err) => {
 projectsRouter.delete("/:id", async (req, res, err) => {
 	let projectID = req.params.id;
 
-	mc.connect(config.db.host, async(err, client) => {
+	mc.connect(config.db.host, async (err, client) => {
 		db = client.db(config.db.name);
 		let projects = db.collection("Projects");
 
-		projects.deleteOne({_id: ObjectId(projectID)}, function(err, result){
-			if(err) throw err;
+		projects.deleteOne({ _id: ObjectId(projectID) }, function (err, result) {
+			if (err) throw err;
 			res.status(200);
 			res.set("Content-Type", "application/json");
 			res.json(result);
@@ -176,8 +176,8 @@ function locateSubtaskArray(tasks, parentID) {
         return null; // If not found, return null
     }
 
-    // Start the recursive search from the root tasks array
-    return findSubtaskArray(tasks, parentID);
+	// Start the recursive search from the root tasks array
+	return findSubtaskArray(tasks, parentID);
 }
 
 projectsRouter.patch("/:id/addTask", async (req, res, err) => {
